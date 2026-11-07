@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ໝຸນກາ ຕມ — ຄຳນວນວັນພັກເຊົາ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f5f8; --card:#ffffff; --ink:#14213d; --muted:#5b6475; --line:#dde2ea;
+    --accent:#1d4e89; --accent-soft:#e6eef8; --today:#b4232c; --today-soft:#fbeaea;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f141c; --card:#18202c; --ink:#eef2f8; --muted:#9aa5b8; --line:#2a3443;
+      --accent:#7fb0ec; --accent-soft:#1f2c3f; --today:#ff7b84; --today-soft:#3a1f24; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Noto Sans Lao",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+  .wrap{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  h1{font-size:1.15rem;margin:0;font-weight:700}
+  .sub{font-size:.8rem;color:var(--muted)}
+  .clock{font-family:"Roboto Mono",monospace;font-size:.85rem;color:var(--muted);text-align:right;white-space:nowrap}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+  .label{font-size:.8rem;color:var(--muted);margin-bottom:6px}
+  .datebar{display:flex;gap:6px;align-items:stretch}
+  .datebox{flex:1;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;
+    font:700 1.15rem "Roboto Mono",monospace;padding:10px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg);color:var(--ink);cursor:pointer}
+  .datebox input[type=date]{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer}
+  .datebox input[type=date]::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;margin:0;padding:0;cursor:pointer}
+  button{font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+    border-radius:10px;padding:8px 12px;font-size:.95rem}
+  button:active{transform:scale(.97)}
+  .btn-today{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  .notice{margin-top:8px;font-size:.82rem;color:var(--today);display:none}
+  .notice.show{display:block}
+
+
+  .grid{display:grid;gap:10px}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+    display:grid;grid-template-columns:86px 1fr;align-items:center;gap:10px}
+  .tag{border-radius:10px;background:var(--accent-soft);color:var(--accent);text-align:center;padding:8px 4px;font-weight:700}
+  .tag .n{font-family:"Roboto Mono",monospace;font-size:1.6rem;line-height:1.1;display:block}
+  .tag .u{font-size:.75rem}
+  .tag .n.entry{font-family:"Noto Sans Lao",sans-serif;font-size:1.05rem;padding:6px 0}
+  .row.today .tag{background:var(--today-soft);color:var(--today)}
+  .date{font-family:"Roboto Mono",monospace;font-weight:700;font-size:1.75rem;letter-spacing:.5px}
+  .meta{font-size:.85rem;color:var(--muted)}
+  .meta b{color:var(--ink);font-weight:600}
+
+  .custom input{width:100%;font:700 1.4rem "Roboto Mono",monospace;text-align:center;padding:4px;
+    border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--accent)}
+  footer{margin-top:18px;font-size:.75rem;color:var(--muted);text-align:center;line-height:1.6}
+  @media (max-width:380px){ .date{font-size:1.45rem} .row{grid-template-columns:74px 1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🛂 ໝຸນກາ ຕມ</h1>
+      <div class="sub">ຄຳນວນວັນໝົດກຳນົດພັກເຊົາ</div>
+    </div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <div class="panel">
+    <div class="label">ວັນທີເຂົ້າເມືອງ (ວັນທີກາ)</div>
+    <div class="datebar">
+      <button id="prev" aria-label="ມື້ກ່ອນ">◀</button>
+      <label class="datebox"><span id="baseText">--/--/----</span><span aria-hidden="true">📅</span>
+        <input type="date" id="base" aria-label="ເລືອກວັນທີ"></label>
+      <button id="next" aria-label="ມື້ຖັດໄປ">▶</button>
+      <button id="today" class="btn-today">ມື້ນີ້</button>
+    </div>
+    <div class="notice" id="notice">⚠ ວັນທີທີ່ເລືອກ ບໍ່ແມ່ນມື້ນີ້</div>
+  </div>
+
+  <div class="grid" id="list"></div>
+
+  <footer>
+    ກວດກາຄືນທຸກຄັ້ງກ່ອນໝຸນກາ · ການຕັ້ງຄ່າຖືກບັນທຶກໄວ້ໃນເຄື່ອງຂອງທ່ານ
+  </footer>
+</div>
+
+<script>
+(function(){
+  const DAYS_LO = ["ວັນອາທິດ","ວັນຈັນ","ວັນອັງຄານ","ວັນພຸດ","ວັນພະຫັດ","ວັນສຸກ","ວັນເສົາ"];
+  const MON_LO = ["ມັງກອນ","ກຸມພາ","ມີນາ","ເມສາ","ພຶດສະພາ","ມິຖຸນາ","ກໍລະກົດ","ສິງຫາ","ກັນຍາ","ຕຸລາ","ພະຈິກ","ທັນວາ"];
+  const MON_EN = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const PRESETS = [14, 15, 30, 90];
+
+  const $ = id => document.getElementById(id);
+  const base = $("base");
+
+  const store = {
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  };
+
+  const pad = n => String(n).padStart(2,"0");
+  const todayDate = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+  const toISO = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  const fromISO = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+  const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+
+  let followToday = true;   // base tracks the real date until user picks another
+  let customN = parseInt(store.get("stamp_customN") || "60", 10);
+
+  function rowHTML(label, unit, d, cls, isCustom){
+    const tagInner = cls === "today"
+      ? `<span class="n entry">${unit}</span>`
+      : isCustom
+      ? `<input id="customN" type="number" inputmode="numeric" min="1" max="999" value="${customN}"><span class="u">${unit}</span>`
+      : `<span class="n">${label}</span><span class="u">${unit}</span>`;
+    return `<div class="row ${cls||""} ${isCustom?"custom":""}">
+      <div class="tag">${tagInner}</div>
+      <div>
+        <div class="date">${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}</div>
+        <div class="meta"><b>${DAYS_LO[d.getDay()]}</b> · ${d.getDate()} ${MON_LO[d.getMonth()]} ${d.getFullYear()} · ${pad(d.getDate())} ${MON_EN[d.getMonth()]} ${d.getFullYear()}</div>
+      </div>
+    </div>`;
+  }
+
+  function render(){
+    if (!base.value) base.value = toISO(todayDate());
+    const b = fromISO(base.value);
+    $("baseText").textContent = pad(b.getDate())+"/"+pad(b.getMonth()+1)+"/"+b.getFullYear();
+    const off = -1; // ນັບມື້ເຂົ້າເມືອງເປັນມື້ທີ 1 (ຕາມລະບຽບ)
+
+    $("notice").classList.toggle("show", base.value !== toISO(todayDate()));
+
+    let html = rowHTML("", "ວັນເຂົ້າ", b, "today");
+    PRESETS.forEach(n => { html += rowHTML(n, "ວັນ", addDays(b, n + off)); });
+    html += rowHTML("", "ວັນ (ກຳນົດເອງ)", addDays(b, customN + off), "", true);
+    $("list").innerHTML = html;
+
+    const ci = $("customN");
+    ci.addEventListener("input", () => {
+      const v = parseInt(ci.value, 10);
+      if (v >= 1 && v <= 999){
+        customN = v; store.set("stamp_customN", String(v));
+        const pos = ci.selectionStart;
+        render();
+        const n = $("customN"); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){}
+      }
+    });
+  }
+
+  function shift(n){ base.value = toISO(addDays(fromISO(base.value), n)); followToday = false; render(); }
+
+  $("prev").onclick = () => shift(-1);
+  $("next").onclick = () => shift(1);
+  $("today").onclick = () => { base.value = toISO(todayDate()); followToday = true; render(); };
+  base.addEventListener("change", () => {
+    if (!base.value) base.value = toISO(todayDate());
+    followToday = base.value === toISO(todayDate());
+    render();
+  });
+
+  // keep "today" correct if the page stays open past midnight or is reopened from background
+  function tick(){
+    const now = new Date();
+    $("clock").innerHTML = pad(now.getHours())+":"+pad(now.getMinutes())+"<br>"+DAYS_LO[now.getDay()];
+    const t = toISO(todayDate());
+    if (followToday && base.value !== t){ base.value = t; render(); }
+    else $("notice").classList.toggle("show", base.value !== t);
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+  setInterval(tick, 20000);
+
+  base.value = toISO(todayDate());
+  render(); tick();
+})();
+</script>
+</body>
+</html>
